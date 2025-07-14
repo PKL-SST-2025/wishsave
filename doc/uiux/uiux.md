@@ -1,0 +1,1 @@
+https://www.figma.com/design/seYmHuxBupJID5kUwGEVHY/Wishlist-app?node-id=0-1&t=mr8swPrS0SevgRLk-1
