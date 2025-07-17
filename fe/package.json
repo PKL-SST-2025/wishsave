@@ -4,12 +4,12 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "vite",
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview",
-    "vercel-build": "npm install --legacy-peer-deps && vite build"
-  },
+  "start": "vite",
+  "dev": "vite",
+  "build": "npm install --legacy-peer-deps && vite build",
+  "serve": "vite preview"
+},
+
   "license": "MIT",
   "devDependencies": {
     "autoprefixer": "^10.4.21",
