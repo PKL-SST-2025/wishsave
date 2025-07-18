@@ -1,8 +1,7 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* ini nanti buat Flowbite */
-@import "flowbite";
-.clip-triangle {
-  clip-path: polygon(0 0, 100% 50%, 0 100%);
+.my-custom-btn {
+  @apply px-4 py-2 bg-blue-500 text-white rounded;
 }
-
