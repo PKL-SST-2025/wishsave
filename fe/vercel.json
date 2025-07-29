@@ -1,4 +1,12 @@
 {
-  "rootDirectory": "fe",
-  "buildCommand": "npm install --legacy-peer-deps && npm run build"
+  "builds": [
+    {
+      "src": "fe/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm install --legacy-peer-deps && npm run build",
+        "distDir": "build"
+      }
+    }
+  ]
 }
