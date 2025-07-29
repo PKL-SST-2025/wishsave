@@ -64,12 +64,10 @@ export default function UpdateWishlist() {
     if (index !== -1) {
       userWishlist[index].ditabung += Number(amount().replace(/[^0-9]/g, '') || 0);
 
-      // ✅ Jika tabungan >= harga, pindah ke riwayat
       if (userWishlist[index].ditabung >= userWishlist[index].harga) {
         const done = { ...userWishlist[index], completed: true };
         userRiwayat.push(done);
         userWishlist.splice(index, 1);
-
         allRiwayat[email] = userRiwayat;
       }
 
@@ -102,9 +100,11 @@ export default function UpdateWishlist() {
                 class="w-full border px-4 py-2 rounded"
               >
                 <option value="">-- Pilih Wishlist --</option>
-                {wishlist().map((w) => (
-                  <option value={w.id}>{w.nama}</option>
-                ))}
+                {wishlist()
+                  .filter((w) => !w.completed)
+                  .map((w) => (
+                    <option value={w.id}>{w.nama}</option>
+                  ))}
               </select>
             </div>
 
@@ -135,8 +135,9 @@ export default function UpdateWishlist() {
             </div>
 
             <div class="flex justify-center">
-              <Button type="submit" variant="teal" class="px-12 rounded-full">Update</Button>
-
+              <Button type="submit" variant="teal" class="px-12 rounded-full">
+                Update
+              </Button>
             </div>
           </form>
         </div>

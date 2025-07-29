@@ -26,6 +26,12 @@ export default function Dashboard() {
   const formatRupiah = (num: number) => "Rp " + num.toLocaleString("id-ID");
 
   onMount(() => {
+    // BACA STATUS SIDEBAR SAAT MASUK
+    const sidebarStatus = localStorage.getItem("sidebarOpen");
+    if (sidebarStatus !== null) {
+      setIsSidebarOpen(sidebarStatus === "true");
+    }
+
     const user = JSON.parse(localStorage.getItem("currentUser") || "null");
     if (!user) {
       navigate("/login");
@@ -41,7 +47,6 @@ export default function Dashboard() {
       const email = user.email;
       const userWishlists = allWishlists[email] || [];
       const filtered = userWishlists.filter((item: WishlistItem) => !item.completed);
-
       setWishlist(filtered);
     };
 
@@ -66,6 +71,13 @@ export default function Dashboard() {
       document.removeEventListener("click", handleClickOutside);
     });
   });
+
+  // Toggle sidebar & simpan ke localStorage
+  const toggleSidebar = () => {
+    const next = !isSidebarOpen();
+    setIsSidebarOpen(next);
+    localStorage.setItem("sidebarOpen", String(next));
+  };
 
   return (
     <div class="flex min-h-screen relative text-gray-800 font-[Poppins]">
@@ -105,8 +117,10 @@ export default function Dashboard() {
               </button>
             </nav>
           </div>
+
+          {/* LOGOUT */}
           <button
-            class="flex items-center gap-2 text-sm hover:opacity-80"
+            class="flex items-center gap-2 text-sm hover:opacity-80 mt-6"
             onClick={() => {
               localStorage.removeItem("currentUser");
               navigate("/login");
@@ -129,10 +143,7 @@ export default function Dashboard() {
           {/* HEADER */}
           <div class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-gray-300 bg-[#d6f0f2]">
             <div class="flex items-center gap-4">
-              <button
-                class="text-2xl md:text-3xl"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen())}
-              >
+              <button class="text-2xl md:text-3xl" onClick={toggleSidebar}>
                 ☰
               </button>
               <h1 class="text-xl md:text-2xl font-bold">WishList</h1>
@@ -145,7 +156,7 @@ export default function Dashboard() {
                 ➕
               </button>
 
-              {/* ICON PROFIL */}
+              {/* PROFIL ICON */}
               <button
                 ref={profileButtonRef}
                 class="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 flex items-center justify-center bg-white"

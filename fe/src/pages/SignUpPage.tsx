@@ -35,10 +35,11 @@ const SignUpPage: Component = () => {
   };
 
   return (
-    <div class="min-h-screen flex items-center justify-center bg-[#F7F7F7] font-[Poppins]">
-      <div class="flex w-full max-w-4xl bg-white rounded-xl overflow-hidden shadow-md">
-        {/* LEFT SIDE - Illustration only */}
-        <div class="w-1/2 bg-[#EAF4F2] flex items-center justify-center p-10">
+    <div class="min-h-screen flex items-center justify-center bg-[#F7F7F7] font-[Poppins] px-4">
+      <div class="flex w-full max-w-4xl bg-white rounded-xl overflow-hidden shadow-md flex-col md:flex-row">
+        
+        {/* LEFT SIDE - Illustration (atas di HP, kiri di desktop) */}
+        <div class="w-full md:w-1/2 bg-[#EAF4F2] flex items-center justify-center p-10">
           <img
             src="/assets/undraw_sign-up_qamz.svg"
             alt="Sign Up Illustration"
@@ -47,8 +48,8 @@ const SignUpPage: Component = () => {
         </div>
 
         {/* RIGHT SIDE - Form */}
-        <div class="w-1/2 bg-white p-12 flex flex-col justify-center relative">
-          <div class="absolute top-8 left-8 w-10 h-10 bg-[#A7EDE7] rounded-full"></div>
+        <div class="w-full md:w-1/2 bg-white p-8 md:p-12 flex flex-col justify-center relative">
+          <div class="absolute top-4 left-4 w-10 h-10 bg-[#A7EDE7] rounded-full hidden md:block"></div>
           <h2 class="text-2xl md:text-3xl font-bold text-black mb-2 z-10">
             Create an account
           </h2>
@@ -77,7 +78,6 @@ const SignUpPage: Component = () => {
               onInput={(e: InputEvent) => setPassword((e.target as HTMLInputElement).value)}
             />
             
-            {/* Ganti tombol native jadi komponen Button */}
             <Button
               type="submit"
               variant="teal"
