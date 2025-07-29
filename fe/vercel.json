@@ -1,8 +1,12 @@
 {
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/fe/build/index.html"
+      "src": "fe/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm install --legacy-peer-deps && npm run build",
+        "distDir": "build"
+      }
     }
   ]
 }
