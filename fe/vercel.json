@@ -1,5 +1,6 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist", 
-  "framework": "solidjs"
+  "buildCommand": "cd fe && npm install --legacy-peer-deps && npm run build",
+  "outputDirectory": "fe/dist",
+  "installCommand": "cd fe && npm install --legacy-peer-deps",
+  "framework": "vite"
 }
