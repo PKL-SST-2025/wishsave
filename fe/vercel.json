@@ -1,6 +1,14 @@
 {
-  "buildCommand": "cd fe && npm install --legacy-peer-deps && npm run build",
-  "outputDirectory": "fe/dist",
-  "installCommand": "cd fe && npm install --legacy-peer-deps",
-  "framework": "vite"
+  "builds": [
+    {
+      "src": "vite.config.ts",
+      "use": "@vercel/static-build"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
