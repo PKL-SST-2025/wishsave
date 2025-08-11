@@ -27,49 +27,57 @@ export default function Grafik() {
 
     const chart = root.container.children.push(
       am5xy.XYChart.new(root, {
-        panX: true, // Always enable horizontal pan
+        panX: true,
         panY: false,
-        wheelX: "panX", // Enable horizontal scroll with mouse wheel
+        wheelX: "panX",
         wheelY: "none",
         layout: root.verticalLayout,
         paddingTop: 20,
-        paddingBottom: active.length > 4 ? 120 : 60,
+        paddingBottom: 120, // Lebih banyak space untuk label
         paddingLeft: 20,
         paddingRight: 20,
       })
     );
 
-    // ✅ X-Axis Configuration
+    // ✅ X-Axis Configuration - FIXED untuk menampilkan semua label
     const xAxisRenderer = am5xy.AxisRendererX.new(root, {
-      cellStartLocation: 0.05,
-      cellEndLocation: 0.95,
+      cellStartLocation: 0.1, // Lebih kecil agar ada ruang
+      cellEndLocation: 0.9,   // Lebih kecil agar ada ruang
       minorGridEnabled: false,
+      minGridDistance: 30,    // Jarak minimum antar grid agar tidak overlap
     });
     
     xAxisRenderer.grid.template.setAll({
       strokeOpacity: 0.1,
     });
 
-    // ✅ FIXED LABELS Configuration
+    // ✅ FIXED LABELS Configuration - Pastikan semua label tampil
     xAxisRenderer.labels.template.setAll({
-      rotation: -90, // Always vertical
+      rotation: -45, // Rotasi 45 derajat lebih mudah dibaca dari 90
       centerY: 1,
-      centerX: 0.5,
+      centerX: 1, // Ubah ke 1 untuk alignment yang lebih baik
       paddingRight: 5,
       paddingTop: 10,
-      fontSize: active.length > 8 ? "9px" : "10px",
-      fontWeight: "600",
-      maxWidth: 100,
-      oversizedBehavior: "wrap", // This replaces multiLine
-      textAlign: "center"
+      fontSize: active.length > 8 ? "9px" : "11px", // Sedikit lebih besar
+      fontWeight: "500",
+      maxWidth: 120, // Lebih lebar
+      oversizedBehavior: "wrap",
+      textAlign: "center",
+      forceHidden: false, // Paksa tampilkan semua label
     });
 
     const xAxis = chart.xAxes.push(
       am5xy.CategoryAxis.new(root, {
         categoryField: "nama",
         renderer: xAxisRenderer,
+        // ✅ KUNCI PERBAIKAN: Set start/end location dan zoom behavior
+        start: 0,
+        end: 1,
       })
     );
+
+    // ✅ Force tampilkan semua label dengan mengatur frequency
+    xAxis.get("renderer").set("minGridDistance", 1);
 
     // ✅ Y-Axis
     const yAxisRenderer = am5xy.AxisRendererY.new(root, {
@@ -92,25 +100,25 @@ export default function Grafik() {
     );
 
     const series = chart.series.push(
-  am5xy.LineSeries.new(root, {
-    name: "Tabungan",
-    xAxis: xAxis,
-    yAxis: yAxis,
-    valueYField: "ditabung",
-    categoryXField: "nama",
-    stroke: am5.color("#1abc9c"),
-    fill: am5.color("#1abc9c"),
-    tooltip: am5.Tooltip.new(root, {
-      labelText: "{nama}: Rp {ditabung.formatNumber('#,###')}",
-      pointerOrientation: "vertical",
-    }),
-  })
-);
+      am5xy.LineSeries.new(root, {
+        name: "Tabungan",
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: "ditabung",
+        categoryXField: "nama",
+        stroke: am5.color("#1abc9c"),
+        fill: am5.color("#1abc9c"),
+        tooltip: am5.Tooltip.new(root, {
+          labelText: "{nama}: Rp {ditabung.formatNumber('#,###')}",
+          pointerOrientation: "vertical",
+        }),
+      })
+    );
 
-// ✅ Atur ketebalan garis di sini
-series.strokes.template.setAll({
-  strokeWidth: 3
-});
+    // ✅ Atur ketebalan garis
+    series.strokes.template.setAll({
+      strokeWidth: 3
+    });
 
     series.bullets.push(() =>
       am5.Bullet.new(root!, {
@@ -123,13 +131,15 @@ series.strokes.template.setAll({
       })
     );
 
-    // ✅ Enhanced Scrollbar for better horizontal navigation
-    const scrollbarX = am5.Scrollbar.new(root, {
-      orientation: "horizontal",
-      marginBottom: 15,
-      height: 20
-    });
-    chart.set("scrollbarX", scrollbarX);
+    // ✅ Enhanced Scrollbar - hanya tampil jika data > 5
+    if (active.length > 5) {
+      const scrollbarX = am5.Scrollbar.new(root, {
+        orientation: "horizontal",
+        marginBottom: 15,
+        height: 20
+      });
+      chart.set("scrollbarX", scrollbarX);
+    }
 
     xAxis.data.setAll(active);
     series.data.setAll(active);
@@ -137,15 +147,16 @@ series.strokes.template.setAll({
     series.appear(1000);
     chart.appear(1000, 100);
 
-    // ✅ Smart zoom configuration based on data length
+    // ✅ FIXED: Zoom configuration - Tampilkan semua data tanpa zoom berlebihan
     setTimeout(() => {
-      if (active.length > 5) {
-        // Show only 4-5 items initially, rest can be scrolled
-        const visibleRatio = Math.min(1, 5 / active.length);
-        xAxis.zoom(0, visibleRatio);
-      } else {
-        // Show all data if 5 or fewer items
+      if (active.length <= 5) {
+        // Jika 5 atau kurang, tampilkan semua tanpa zoom
         chart.zoomOut();
+        xAxis.zoom(0, 1); // Tampilkan dari 0% sampai 100%
+      } else {
+        // Jika lebih dari 5, tampilkan 5 item pertama dengan scroll untuk sisanya
+        const visibleRatio = 5 / active.length;
+        xAxis.zoom(0, visibleRatio);
       }
     }, 1200);
 
@@ -344,11 +355,16 @@ series.strokes.template.setAll({
           }
         }
 
-        /* ✅ Enhanced Chart CSS with better scrolling */
+        /* ✅ Enhanced Chart CSS - FIXED untuk menampilkan semua label */
         #chartdiv {
-          min-height: 450px !important;
+          min-height: 500px !important;
           width: 100% !important;
-          overflow-x: auto; /* Enable horizontal scroll fallback */
+          overflow: visible !important; /* Ubah ke visible agar label tidak terpotong */
+        }
+
+        /* Pastikan label axis tidak terpotong */
+        #chartdiv .am5-axis-label {
+          overflow: visible !important;
         }
 
         /* Custom scrollbar styling */
@@ -394,9 +410,16 @@ series.strokes.template.setAll({
           }
         }
 
-        /* Ensure amCharts labels are visible */
+        /* ✅ FIXED: Pastikan semua label axis terlihat */
         .am5-axis-label {
           overflow: visible !important;
+          white-space: nowrap !important;
+        }
+        
+        /* Force show all category labels */
+        .am5-category-axis .am5-axis-label {
+          display: block !important;
+          visibility: visible !important;
         }
       `}</style>
 
@@ -496,7 +519,7 @@ series.strokes.template.setAll({
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* ✅ Enhanced Chart with Horizontal Scroll */}
+          {/* ✅ Enhanced Chart - FIXED untuk menampilkan semua 5 label */}
           <div class="lg:col-span-8 glass-card rounded-2xl shadow-xl p-6">
             <div class="flex items-center gap-3 mb-4">
               <div class="w-8 h-8 bg-gradient-to-r from-teal-400 to-blue-400 rounded-lg flex items-center justify-center">
@@ -505,11 +528,13 @@ series.strokes.template.setAll({
                 </svg>
               </div>
               <h3 class="text-lg font-semibold text-gray-800">Grafik Progress</h3>
-              <span class="text-xs text-gray-500 ml-auto">↔ Geser untuk melihat semua data</span>
+              <Show when={data().length > 5}>
+                <span class="text-xs text-gray-500 ml-auto">↔ Geser untuk melihat semua data</span>
+              </Show>
             </div>
             <div
               id="chartdiv"
-              class="w-full h-[400px] md:h-[500px] rounded-xl"
+              class="w-full h-[450px] md:h-[500px] rounded-xl"
             />
           </div>
 
@@ -530,7 +555,7 @@ series.strokes.template.setAll({
                 <div class="empty-state text-center py-16">
                   <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                     </svg>
                   </div>
                   <h3 class="text-lg font-semibold text-gray-700 mb-2">Belum Ada Data</h3>
