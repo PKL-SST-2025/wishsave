@@ -9,6 +9,7 @@ type WishlistItem = {
   ditabung: number;
   gambar?: string;
   completed?: boolean;
+  completedAt?: string;
 };
 
 export default function UpdateWishlist() {
@@ -54,28 +55,60 @@ export default function UpdateWishlist() {
     if (!user) return;
 
     const email = user.email;
+    
+    // Ambil data terbaru dari localStorage - pakai key yang sama dengan TambahWishlist
     const allWishlists = JSON.parse(localStorage.getItem('wishlist') || '{}');
-    const allRiwayat = JSON.parse(localStorage.getItem('riwayatWishlist') || '{}');
+    const allHistory = JSON.parse(localStorage.getItem('wishlistHistory') || '{}'); // Key diubah
 
-    const userWishlist: WishlistItem[] = allWishlists[email] || [];
-    const userRiwayat: WishlistItem[] = allRiwayat[email] || [];
+    // Pastikan struktur data ada
+    const userWishlist: WishlistItem[] = [...(allWishlists[email] || [])];
+    const userHistory: WishlistItem[] = [...(allHistory[email] || [])]; // Variable diubah
 
-    const index = userWishlist.findIndex((w) => w.id === selectedId());
-    if (index !== -1) {
-      userWishlist[index].ditabung += Number(amount().replace(/[^0-9]/g, '') || 0);
+    const itemIndex = userWishlist.findIndex((w) => w.id === selectedId());
+    if (itemIndex !== -1) {
+      const updatedItem = { ...userWishlist[itemIndex] };
+      const addAmount = Number(amount().replace(/[^0-9]/g, '') || 0);
+      
+      // Update jumlah yang ditabung
+      updatedItem.ditabung += addAmount;
 
-      if (userWishlist[index].ditabung >= userWishlist[index].harga) {
-        const done = { ...userWishlist[index], completed: true };
-        userRiwayat.push(done);
-        userWishlist.splice(index, 1);
-        allRiwayat[email] = userRiwayat;
+      // Cek apakah sudah selesai (mencapai target)
+      if (updatedItem.ditabung >= updatedItem.harga) {
+        // Set sebagai completed dan pindahkan ke riwayat
+        updatedItem.completed = true;
+        updatedItem.ditabung = updatedItem.harga; // Set pas dengan target
+        updatedItem.completedAt = new Date().toISOString(); // Tambah tanggal completion
+        
+        // Tambah ke history
+        userHistory.push(updatedItem);
+        
+        // Hapus dari wishlist aktif
+        userWishlist.splice(itemIndex, 1);
+        
+        alert(`Selamat! Wishlist "${updatedItem.nama}" telah selesai dan dipindahkan ke riwayat!`);
+      } else {
+        // Update di wishlist aktif
+        userWishlist[itemIndex] = updatedItem;
+        alert(`Tabungan berhasil ditambah! Progress: ${Math.floor((updatedItem.ditabung / updatedItem.harga) * 100)}%`);
       }
 
+      // Simpan kembali ke localStorage - pakai key yang benar
       allWishlists[email] = userWishlist;
+      allHistory[email] = userHistory; // Key diubah
+      
       localStorage.setItem('wishlist', JSON.stringify(allWishlists));
-      localStorage.setItem('riwayatWishlist', JSON.stringify(allRiwayat));
+      localStorage.setItem('wishlistHistory', JSON.stringify(allHistory)); // Key diubah
 
+      // Dispatch event untuk update UI - trigger kedua event
       window.dispatchEvent(new Event('wishlist-updated'));
+      window.dispatchEvent(new Event('wishlist-history-updated')); // Tambahan ini
+      
+      // Debug log untuk memastikan data tersimpan
+      console.log('Updated wishlist:', userWishlist);
+      console.log('Updated history:', userHistory); // Variable diubah
+      console.log('Saved to localStorage - wishlist:', JSON.parse(localStorage.getItem('wishlist') || '{}')[email]);
+      console.log('Saved to localStorage - history:', JSON.parse(localStorage.getItem('wishlistHistory') || '{}')[email]); // Key diubah
+      
       navigate('/dashboard');
     } else {
       alert('Item tidak ditemukan!');

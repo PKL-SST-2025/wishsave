@@ -17,22 +17,38 @@ export default function TambahWishlist() {
 
     const email = user.email;
     const allWishlists = JSON.parse(localStorage.getItem("wishlist") || "{}");
+    const allHistory = JSON.parse(localStorage.getItem("wishlistHistory") || "{}");
 
     const userWishlists = allWishlists[email] || [];
+    const userHistory = allHistory[email] || [];
+
+    const hargaNum = Number(harga().replace(/[^0-9]/g, ''));
+    const ditabungNum = Number(ditabung().replace(/[^0-9]/g, '')) || 0;
+    
+    // Cek apakah sudah completed (ditabung >= harga)
+    const isCompleted = ditabungNum >= hargaNum;
 
     const newItem = {
       id: Date.now(),
       nama: nama(),
-      harga: Number(harga().replace(/[^0-9]/g, '')),
-      ditabung: Number(ditabung().replace(/[^0-9]/g, '')) || 0,
+      harga: hargaNum,
+      ditabung: ditabungNum,
       gambar: gambar(),
-      completed: false,
+      completed: isCompleted,
     };
 
-    allWishlists[email] = [...userWishlists, newItem];
-    localStorage.setItem("wishlist", JSON.stringify(allWishlists));
+    if (isCompleted) {
+      // Jika sudah completed, langsung masuk ke riwayat
+      allHistory[email] = [...userHistory, newItem];
+      localStorage.setItem("wishlistHistory", JSON.stringify(allHistory));
+    } else {
+      // Jika belum completed, masuk ke wishlist aktif
+      allWishlists[email] = [...userWishlists, newItem];
+      localStorage.setItem("wishlist", JSON.stringify(allWishlists));
+    }
 
     window.dispatchEvent(new Event("wishlist-updated"));
+    window.dispatchEvent(new Event("wishlist-history-updated"));
 
     navigate("/dashboard");
   };

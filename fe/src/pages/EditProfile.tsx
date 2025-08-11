@@ -50,21 +50,19 @@ export default function EditProfile() {
       profileImage: profileImage(),
     };
 
-    // Simpan ke currentUser
     localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-
-    // Simpan ke allUsers (misal disimpan di key `users`)
     const allUsers = JSON.parse(localStorage.getItem("users") || "{}");
     allUsers[updatedUser.email] = updatedUser;
     localStorage.setItem("users", JSON.stringify(allUsers));
 
     alert("Profil berhasil diperbarui!");
+    navigate("/dashboard"); // Tambahan ini - langsung redirect ke dashboard setelah alert
   };
 
   return (
-    <div class="flex h-screen font-sans">
-      {/* Kiri: Profile Info */}
-      <div class="w-1/2 bg-green-100 flex flex-col items-center justify-center relative p-6">
+    <div class="flex flex-col md:flex-row h-screen font-sans overflow-y-auto">
+      {/* Kiri: Profile */}
+      <div class="w-full md:w-1/2 bg-green-100 flex flex-col items-center justify-center relative p-6">
         <button
           class="absolute top-4 left-4 text-2xl cursor-pointer"
           onClick={() => navigate("/dashboard")}
@@ -74,7 +72,7 @@ export default function EditProfile() {
 
         <h2 class="text-2xl font-bold mb-4">Profile</h2>
 
-        <div class="w-28 h-28 bg-purple-100 rounded-full overflow-hidden flex items-center justify-center mb-4">
+        <div class="w-24 h-24 md:w-28 md:h-28 bg-purple-100 rounded-full overflow-hidden flex items-center justify-center mb-4">
           {profileImage() ? (
             <img src={profileImage()} alt="Profile" class="object-cover w-full h-full" />
           ) : (
@@ -106,7 +104,7 @@ export default function EditProfile() {
       </div>
 
       {/* Kanan: Form */}
-      <div class="w-1/2 bg-gradient-to-b from-white to-blue-100 p-8 flex flex-col justify-center">
+      <div class="w-full md:w-1/2 bg-gradient-to-b from-white to-blue-100 p-6 sm:p-8 flex flex-col justify-center">
         <label class="text-sm font-semibold mb-1">Username</label>
         <input
           type="text"
