@@ -27,19 +27,38 @@ export default function Grafik() {
 
     const chart = root.container.children.push(
       am5xy.XYChart.new(root, {
-        panX: true,
-        panY: true,
-        wheelX: "panX",
-        wheelY: "zoomX",
+        panX: false,
+        panY: false,
+        wheelX: "none",
+        wheelY: "none",
         layout: root.verticalLayout,
+        paddingTop: 20,
+        paddingBottom: 20,
+        paddingLeft: 10,
+        paddingRight: 10,
       })
     );
 
+    // ✅ PERBAIKAN MOBILE: X-Axis dengan rotasi label dan spacing yang lebih baik
     const xAxisRenderer = am5xy.AxisRendererX.new(root, {
-      minGridDistance: 30,
+      minGridDistance: 60, // Lebih besar untuk mobile
+      cellStartLocation: 0.1,
+      cellEndLocation: 0.9,
     });
+    
     xAxisRenderer.grid.template.setAll({
       strokeOpacity: 0.1,
+    });
+
+    // ✅ PERBAIKAN: Label rotation untuk mobile
+    xAxisRenderer.labels.template.setAll({
+      rotation: -45,
+      centerY: 0,
+      centerX: 1,
+      paddingRight: 15,
+      fontSize: "11px",
+      maxWidth: 80,
+      oversizedBehavior: "truncate"
     });
 
     const xAxis = chart.xAxes.push(
@@ -49,14 +68,24 @@ export default function Grafik() {
       })
     );
 
-    const yAxisRenderer = am5xy.AxisRendererY.new(root, {});
+    // ✅ PERBAIKAN MOBILE: Y-Axis dengan format yang lebih compact
+    const yAxisRenderer = am5xy.AxisRendererY.new(root, {
+      opposite: false,
+    });
     yAxisRenderer.grid.template.setAll({
       strokeOpacity: 0.1,
+    });
+
+    // ✅ Format label Y-axis untuk mobile (lebih compact)
+    yAxisRenderer.labels.template.setAll({
+      fontSize: "10px",
+      paddingRight: 5,
     });
 
     const yAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
         renderer: yAxisRenderer,
+        numberFormat: "#a", // Format compact: 1M, 1K, etc
       })
     );
 
@@ -67,26 +96,40 @@ export default function Grafik() {
         yAxis: yAxis,
         valueYField: "ditabung",
         categoryXField: "nama",
+        stroke: am5.color("#1abc9c"),
+        fill: am5.color("#1abc9c"),
         tooltip: am5.Tooltip.new(root, {
-          labelText: "{ditabung.formatNumber('#,###')}",
+          labelText: "Rp {ditabung.formatNumber('#,###')}",
+          pointerOrientation: "vertical",
         }),
       })
     );
 
-    // BULLET CIRCLE
+    // ✅ BULLET CIRCLE dengan size yang responsive
     series.bullets.push(() =>
       am5.Bullet.new(root!, {
         sprite: am5.Circle.new(root!, {
-          radius: 5,
+          radius: 4, // Lebih kecil untuk mobile
           fill: series.get("fill"),
+          stroke: am5.color("#ffffff"),
+          strokeWidth: 2,
         }),
       })
     );
 
     xAxis.data.setAll(active);
     series.data.setAll(active);
+    
+    // ✅ PERBAIKAN: Zoom to fit semua data
     series.appear(1000);
     chart.appear(1000, 100);
+
+    // ✅ Auto-fit chart setelah data loaded
+    setTimeout(() => {
+      if (active.length > 0) {
+        chart.zoomOut();
+      }
+    }, 1200);
 
     // ✅ Add floating particles effect
     const createParticle = () => {
@@ -282,6 +325,35 @@ export default function Grafik() {
             background-position: 100% 50%;
           }
         }
+
+        /* ✅ PERBAIKAN MOBILE: Chart container responsive */
+        #chartdiv {
+          min-height: 350px !important;
+        }
+
+        @media (max-width: 768px) {
+          #chartdiv {
+            min-height: 300px !important;
+          }
+          
+          .glass-card {
+            margin: 0 -0.5rem;
+          }
+          
+          .title-enhanced {
+            font-size: 1.5rem !important;
+          }
+          
+          .stat-card, .stat-card-2, .stat-card-3 {
+            padding: 1rem !important;
+          }
+          
+          .stat-card p:last-child, 
+          .stat-card-2 p:last-child, 
+          .stat-card-3 p:last-child {
+            font-size: 1.25rem !important;
+          }
+        }
       `}</style>
 
       <div class="enhanced-container relative p-6 min-h-screen">
@@ -380,7 +452,7 @@ export default function Grafik() {
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* ✅ Enhanced Chart */}
+          {/* ✅ Enhanced Chart - FIXED FOR MOBILE */}
           <div class="lg:col-span-8 glass-card rounded-2xl shadow-xl p-6">
             <div class="flex items-center gap-3 mb-4">
               <div class="w-8 h-8 bg-gradient-to-r from-teal-400 to-blue-400 rounded-lg flex items-center justify-center">
@@ -392,7 +464,7 @@ export default function Grafik() {
             </div>
             <div
               id="chartdiv"
-              class="w-full h-[500px] rounded-xl"
+              class="w-full h-[400px] md:h-[500px] rounded-xl"
             />
           </div>
 
