@@ -27,41 +27,40 @@ export default function Grafik() {
 
     const chart = root.container.children.push(
       am5xy.XYChart.new(root, {
-        panX: active.length > 6 ? true : false, // Enable pan jika banyak data
+        panX: true, // Always enable horizontal pan
         panY: false,
-        wheelX: active.length > 6 ? "panX" : "none",
+        wheelX: "panX", // Enable horizontal scroll with mouse wheel
         wheelY: "none",
         layout: root.verticalLayout,
         paddingTop: 20,
-        paddingBottom: active.length > 4 ? 120 : 60, // Padding lebih besar
+        paddingBottom: active.length > 4 ? 120 : 60,
         paddingLeft: 20,
         paddingRight: 20,
       })
     );
 
-    // ✅ X-Axis - PERBAIKAN UTAMA
+    // ✅ X-Axis Configuration
     const xAxisRenderer = am5xy.AxisRendererX.new(root, {
       cellStartLocation: 0.05,
       cellEndLocation: 0.95,
-      minorGridEnabled: false, // Matikan minor grid
+      minorGridEnabled: false,
     });
     
     xAxisRenderer.grid.template.setAll({
       strokeOpacity: 0.1,
     });
 
-    // ✅ LABELS - INI YANG PALING PENTING
+    // ✅ FIXED LABELS Configuration
     xAxisRenderer.labels.template.setAll({
-      rotation: -90, // Selalu vertikal
+      rotation: -90, // Always vertical
       centerY: 1,
       centerX: 0.5,
       paddingRight: 5,
       paddingTop: 10,
       fontSize: active.length > 8 ? "9px" : "10px",
       fontWeight: "600",
-      maxWidth: 100, // Lebih lebar
-      oversizedBehavior: "wrap", // GANTI dari truncate ke wrap
-      multiLine: true,
+      maxWidth: 100,
+      oversizedBehavior: "wrap", // This replaces multiLine
       textAlign: "center"
     });
 
@@ -93,42 +92,44 @@ export default function Grafik() {
     );
 
     const series = chart.series.push(
-      am5xy.LineSeries.new(root, {
-        name: "Tabungan",
-        xAxis: xAxis,
-        yAxis: yAxis,
-        valueYField: "ditabung",
-        categoryXField: "nama",
-        stroke: am5.color("#1abc9c"),
-        fill: am5.color("#1abc9c"),
-        strokeWidth: 3, // Lebih tebal
-        tooltip: am5.Tooltip.new(root, {
-          labelText: "{nama}: Rp {ditabung.formatNumber('#,###')}", // Tampilkan nama juga
-          pointerOrientation: "vertical",
-        }),
-      })
-    );
+  am5xy.LineSeries.new(root, {
+    name: "Tabungan",
+    xAxis: xAxis,
+    yAxis: yAxis,
+    valueYField: "ditabung",
+    categoryXField: "nama",
+    stroke: am5.color("#1abc9c"),
+    fill: am5.color("#1abc9c"),
+    tooltip: am5.Tooltip.new(root, {
+      labelText: "{nama}: Rp {ditabung.formatNumber('#,###')}",
+      pointerOrientation: "vertical",
+    }),
+  })
+);
+
+// ✅ Atur ketebalan garis di sini
+series.strokes.template.setAll({
+  strokeWidth: 3
+});
 
     series.bullets.push(() =>
       am5.Bullet.new(root!, {
         sprite: am5.Circle.new(root!, {
-          radius: 5, // Sedikit lebih besar
+          radius: 5,
           fill: series.get("fill"),
           stroke: am5.color("#ffffff"),
-          strokeWidth: 3,
+          strokeWidth: 3
         }),
       })
     );
 
-    // ✅ TAMBAHAN: Scrollbar untuk mobile jika data banyak
-    if (active.length > 5 && window.innerWidth <= 768) {
-      const scrollbarX = am5.Scrollbar.new(root, {
-        orientation: "horizontal",
-        marginBottom: 15,
-        height: 20
-      });
-      chart.set("scrollbarX", scrollbarX);
-    }
+    // ✅ Enhanced Scrollbar for better horizontal navigation
+    const scrollbarX = am5.Scrollbar.new(root, {
+      orientation: "horizontal",
+      marginBottom: 15,
+      height: 20
+    });
+    chart.set("scrollbarX", scrollbarX);
 
     xAxis.data.setAll(active);
     series.data.setAll(active);
@@ -136,14 +137,14 @@ export default function Grafik() {
     series.appear(1000);
     chart.appear(1000, 100);
 
-    // ✅ ZOOM SETTING untuk show semua data
+    // ✅ Smart zoom configuration based on data length
     setTimeout(() => {
-      if (active.length > 5 && window.innerWidth <= 768) {
-        // Mobile dengan banyak data: show 3-4 items, rest bisa di-scroll
-        const visibleRatio = Math.min(1, 4 / active.length);
+      if (active.length > 5) {
+        // Show only 4-5 items initially, rest can be scrolled
+        const visibleRatio = Math.min(1, 5 / active.length);
         xAxis.zoom(0, visibleRatio);
       } else {
-        // Desktop atau data sedikit: show semua
+        // Show all data if 5 or fewer items
         chart.zoomOut();
       }
     }, 1200);
@@ -343,10 +344,30 @@ export default function Grafik() {
           }
         }
 
-        /* ✅ PERBAIKAN CHART CSS */
+        /* ✅ Enhanced Chart CSS with better scrolling */
         #chartdiv {
           min-height: 450px !important;
           width: 100% !important;
+          overflow-x: auto; /* Enable horizontal scroll fallback */
+        }
+
+        /* Custom scrollbar styling */
+        #chartdiv ::-webkit-scrollbar {
+          height: 8px;
+        }
+
+        #chartdiv ::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 4px;
+        }
+
+        #chartdiv ::-webkit-scrollbar-thumb {
+          background: linear-gradient(45deg, #1abc9c, #16a085);
+          border-radius: 4px;
+        }
+
+        #chartdiv ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(45deg, #16a085, #1abc9c);
         }
 
         @media (max-width: 768px) {
@@ -373,7 +394,7 @@ export default function Grafik() {
           }
         }
 
-        /* Biar labels AMCharts keliatan semua */
+        /* Ensure amCharts labels are visible */
         .am5-axis-label {
           overflow: visible !important;
         }
@@ -475,7 +496,7 @@ export default function Grafik() {
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* ✅ Enhanced Chart - FIXED FOR MOBILE */}
+          {/* ✅ Enhanced Chart with Horizontal Scroll */}
           <div class="lg:col-span-8 glass-card rounded-2xl shadow-xl p-6">
             <div class="flex items-center gap-3 mb-4">
               <div class="w-8 h-8 bg-gradient-to-r from-teal-400 to-blue-400 rounded-lg flex items-center justify-center">
@@ -484,6 +505,7 @@ export default function Grafik() {
                 </svg>
               </div>
               <h3 class="text-lg font-semibold text-gray-800">Grafik Progress</h3>
+              <span class="text-xs text-gray-500 ml-auto">↔ Geser untuk melihat semua data</span>
             </div>
             <div
               id="chartdiv"
