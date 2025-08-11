@@ -27,38 +27,42 @@ export default function Grafik() {
 
     const chart = root.container.children.push(
       am5xy.XYChart.new(root, {
-        panX: false,
+        panX: active.length > 6 ? true : false, // Enable pan jika banyak data
         panY: false,
-        wheelX: "none",
+        wheelX: active.length > 6 ? "panX" : "none",
         wheelY: "none",
         layout: root.verticalLayout,
         paddingTop: 20,
-        paddingBottom: active.length > 4 ? 60 : 40, // Extra padding untuk label panjang
-        paddingLeft: 15,
-        paddingRight: 15,
+        paddingBottom: active.length > 4 ? 120 : 60, // Padding lebih besar
+        paddingLeft: 20,
+        paddingRight: 20,
       })
     );
 
-    // ✅ PERBAIKAN MOBILE: X-Axis dengan spacing yang lebih pintar
+    // ✅ X-Axis - PERBAIKAN UTAMA
     const xAxisRenderer = am5xy.AxisRendererX.new(root, {
-      minGridDistance: active.length > 5 ? Math.max(40, 300/active.length) : 60,
-      cellStartLocation: 0.1,
-      cellEndLocation: 0.9,
+      cellStartLocation: 0.05,
+      cellEndLocation: 0.95,
+      minorGridEnabled: false, // Matikan minor grid
     });
     
     xAxisRenderer.grid.template.setAll({
       strokeOpacity: 0.1,
     });
 
-    // ✅ PERBAIKAN: Label rotation dan truncate untuk banyak data
+    // ✅ LABELS - INI YANG PALING PENTING
     xAxisRenderer.labels.template.setAll({
-      rotation: active.length > 4 ? -90 : -45, // Rotasi vertikal jika data > 4
-      centerY: active.length > 4 ? 1 : 0,
-      centerX: active.length > 4 ? 0.5 : 1,
-      paddingRight: active.length > 4 ? 5 : 15,
-      fontSize: active.length > 6 ? "9px" : "11px",
-      maxWidth: active.length > 4 ? 60 : 80,
-      oversizedBehavior: "truncate"
+      rotation: -90, // Selalu vertikal
+      centerY: 1,
+      centerX: 0.5,
+      paddingRight: 5,
+      paddingTop: 10,
+      fontSize: active.length > 8 ? "9px" : "10px",
+      fontWeight: "600",
+      maxWidth: 100, // Lebih lebar
+      oversizedBehavior: "wrap", // GANTI dari truncate ke wrap
+      multiLine: true,
+      textAlign: "center"
     });
 
     const xAxis = chart.xAxes.push(
@@ -68,7 +72,7 @@ export default function Grafik() {
       })
     );
 
-    // ✅ PERBAIKAN MOBILE: Y-Axis dengan format yang lebih compact
+    // ✅ Y-Axis
     const yAxisRenderer = am5xy.AxisRendererY.new(root, {
       opposite: false,
     });
@@ -76,7 +80,6 @@ export default function Grafik() {
       strokeOpacity: 0.1,
     });
 
-    // ✅ Format label Y-axis untuk mobile (lebih compact)
     yAxisRenderer.labels.template.setAll({
       fontSize: "10px",
       paddingRight: 5,
@@ -85,7 +88,7 @@ export default function Grafik() {
     const yAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
         renderer: yAxisRenderer,
-        numberFormat: "#a", // Format compact: 1M, 1K, etc
+        numberFormat: "#a",
       })
     );
 
@@ -98,35 +101,49 @@ export default function Grafik() {
         categoryXField: "nama",
         stroke: am5.color("#1abc9c"),
         fill: am5.color("#1abc9c"),
+        strokeWidth: 3, // Lebih tebal
         tooltip: am5.Tooltip.new(root, {
-          labelText: "Rp {ditabung.formatNumber('#,###')}",
+          labelText: "{nama}: Rp {ditabung.formatNumber('#,###')}", // Tampilkan nama juga
           pointerOrientation: "vertical",
         }),
       })
     );
 
-    // ✅ BULLET CIRCLE dengan size yang responsive
     series.bullets.push(() =>
       am5.Bullet.new(root!, {
         sprite: am5.Circle.new(root!, {
-          radius: 4, // Lebih kecil untuk mobile
+          radius: 5, // Sedikit lebih besar
           fill: series.get("fill"),
           stroke: am5.color("#ffffff"),
-          strokeWidth: 2,
+          strokeWidth: 3,
         }),
       })
     );
 
+    // ✅ TAMBAHAN: Scrollbar untuk mobile jika data banyak
+    if (active.length > 5 && window.innerWidth <= 768) {
+      const scrollbarX = am5.Scrollbar.new(root, {
+        orientation: "horizontal",
+        marginBottom: 15,
+        height: 20
+      });
+      chart.set("scrollbarX", scrollbarX);
+    }
+
     xAxis.data.setAll(active);
     series.data.setAll(active);
     
-    // ✅ PERBAIKAN: Zoom to fit semua data
     series.appear(1000);
     chart.appear(1000, 100);
 
-    // ✅ Auto-fit chart setelah data loaded
+    // ✅ ZOOM SETTING untuk show semua data
     setTimeout(() => {
-      if (active.length > 0) {
+      if (active.length > 5 && window.innerWidth <= 768) {
+        // Mobile dengan banyak data: show 3-4 items, rest bisa di-scroll
+        const visibleRatio = Math.min(1, 4 / active.length);
+        xAxis.zoom(0, visibleRatio);
+      } else {
+        // Desktop atau data sedikit: show semua
         chart.zoomOut();
       }
     }, 1200);
@@ -326,14 +343,15 @@ export default function Grafik() {
           }
         }
 
-        /* ✅ PERBAIKAN MOBILE: Chart container responsive */
+        /* ✅ PERBAIKAN CHART CSS */
         #chartdiv {
-          min-height: 350px !important;
+          min-height: 450px !important;
+          width: 100% !important;
         }
 
         @media (max-width: 768px) {
           #chartdiv {
-            min-height: 400px !important; /* Lebih tinggi untuk accommodate banyak labels */
+            min-height: 550px !important;
           }
           
           .glass-card {
@@ -353,6 +371,11 @@ export default function Grafik() {
           .stat-card-3 p:last-child {
             font-size: 1.25rem !important;
           }
+        }
+
+        /* Biar labels AMCharts keliatan semua */
+        .am5-axis-label {
+          overflow: visible !important;
         }
       `}</style>
 
