@@ -33,15 +33,15 @@ export default function Grafik() {
         wheelY: "none",
         layout: root.verticalLayout,
         paddingTop: 20,
-        paddingBottom: 20,
-        paddingLeft: 10,
-        paddingRight: 10,
+        paddingBottom: active.length > 4 ? 60 : 40, // Extra padding untuk label panjang
+        paddingLeft: 15,
+        paddingRight: 15,
       })
     );
 
-    // ✅ PERBAIKAN MOBILE: X-Axis dengan rotasi label dan spacing yang lebih baik
+    // ✅ PERBAIKAN MOBILE: X-Axis dengan spacing yang lebih pintar
     const xAxisRenderer = am5xy.AxisRendererX.new(root, {
-      minGridDistance: 60, // Lebih besar untuk mobile
+      minGridDistance: active.length > 5 ? Math.max(40, 300/active.length) : 60,
       cellStartLocation: 0.1,
       cellEndLocation: 0.9,
     });
@@ -50,14 +50,14 @@ export default function Grafik() {
       strokeOpacity: 0.1,
     });
 
-    // ✅ PERBAIKAN: Label rotation untuk mobile
+    // ✅ PERBAIKAN: Label rotation dan truncate untuk banyak data
     xAxisRenderer.labels.template.setAll({
-      rotation: -45,
-      centerY: 0,
-      centerX: 1,
-      paddingRight: 15,
-      fontSize: "11px",
-      maxWidth: 80,
+      rotation: active.length > 4 ? -90 : -45, // Rotasi vertikal jika data > 4
+      centerY: active.length > 4 ? 1 : 0,
+      centerX: active.length > 4 ? 0.5 : 1,
+      paddingRight: active.length > 4 ? 5 : 15,
+      fontSize: active.length > 6 ? "9px" : "11px",
+      maxWidth: active.length > 4 ? 60 : 80,
       oversizedBehavior: "truncate"
     });
 
@@ -333,7 +333,7 @@ export default function Grafik() {
 
         @media (max-width: 768px) {
           #chartdiv {
-            min-height: 300px !important;
+            min-height: 400px !important; /* Lebih tinggi untuk accommodate banyak labels */
           }
           
           .glass-card {
