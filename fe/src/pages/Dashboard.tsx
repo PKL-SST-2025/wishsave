@@ -53,8 +53,6 @@ export default function Dashboard() {
       const email = user.email;
       const userWishlists = [...(allWishlists[email] || [])];
       
-      // Langsung set wishlist tanpa cek completed lagi
-      // Biar Update Wishlist yang handle pemindahan ke riwayat
       setWishlist(userWishlists);
       
       console.log("Dashboard loaded wishlist:", userWishlists);
@@ -276,13 +274,17 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Daftar Wishlist - dengan overflow control */}
+          {/* Daftar Wishlist - Layout baru dengan gambar kiri */}
           <div class="flex-1 p-4 sm:p-6 overflow-y-auto">
             <Show
               when={wishlist().length > 0}
               fallback={
                 <div class="flex items-center justify-center h-full">
-                  <p class="text-center text-gray-600 italic">Belum ada wishlist.</p>
+                  <div class="text-center">
+                    <div class="mb-4 text-6xl opacity-30">📋</div>
+                    <p class="text-gray-600 italic">Belum ada wishlist.</p>
+                    <p class="text-sm text-gray-500 mt-2">Tambahkan barang impianmu sekarang!</p>
+                  </div>
                 </div>
               }
             >
@@ -290,51 +292,97 @@ export default function Dashboard() {
                 <For each={wishlist()}>
                   {(item) => {
                     const persen = Math.min((item.ditabung / item.harga) * 100, 100).toFixed(0);
+                    const isCompleted = parseInt(persen) >= 100;
+                    
                     return (
-                      <div class="bg-white shadow-md rounded-xl p-4">
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                          <Show when={item.gambar}>
-                            <div class="w-full sm:w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                      <div class="bg-white shadow-lg rounded-xl p-4 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                        {/* Layout Horizontal: Gambar Kiri - Info Kanan */}
+                        <div class="flex items-center gap-4">
+                          {/* Gambar Produk - Fixed size di kiri */}
+                          <div class="w-20 h-20 flex-shrink-0 bg-gray-50 rounded-xl overflow-hidden border-2 border-gray-100">
+                            <Show
+                              when={item.gambar}
+                              fallback={
+                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                                  <span class="text-2xl">📦</span>
+                                </div>
+                              }
+                            >
                               <img
                                 src={item.gambar}
                                 alt={item.nama}
-                                class="w-full h-full object-contain"
-                                style={{ "background-color": "#f9fafb" }}
+                                class="w-full h-full object-cover"
                               />
-                            </div>
-                          </Show>
+                            </Show>
+                          </div>
+                          
+                          {/* Info Produk - Flexible width di kanan */}
                           <div class="flex-1 min-w-0">
-                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
-                              <div class="min-w-0 flex-1">
-                                <h3 class="font-semibold truncate">{item.nama}</h3>
-                                <p class="text-sm">Harga: {formatRupiah(item.harga)}</p>
-                                <p class="text-sm text-gray-500">
-                                  Ditabung: {formatRupiah(item.ditabung)} ({persen}%)
-                                </p>
+                            {/* Header: Nama & Tombol Hapus */}
+                            <div class="flex items-start justify-between mb-2">
+                              <div class="flex-1 min-w-0">
+                                <h3 class="font-bold text-lg text-gray-800 truncate">{item.nama}</h3>
+                                <p class="text-base font-semibold text-blue-600">{formatRupiah(item.harga)}</p>
                               </div>
-                              <div class="flex flex-row sm:flex-col gap-2 w-full sm:w-auto flex-shrink-0">
-                                <button
-                                  class="flex-1 sm:flex-none text-red-500 text-sm hover:underline"
-                                  onClick={() => {
-                                    const updated = wishlist().filter(w => w.id !== item.id);
-                                    setWishlist(updated);
-                                    const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
-                                    const all = JSON.parse(localStorage.getItem("wishlist") || "{}");
-                                    const email = user.email;
-                                    all[email] = updated;
-                                    localStorage.setItem("wishlist", JSON.stringify(all));
-                                    window.dispatchEvent(new Event("wishlist-updated"));
-                                  }}
-                                >
-                                  Hapus
-                                </button>
+                              <button
+                                class="ml-3 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition-all duration-200 flex-shrink-0"
+                                onClick={() => {
+                                  const updated = wishlist().filter(w => w.id !== item.id);
+                                  setWishlist(updated);
+                                  const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+                                  const all = JSON.parse(localStorage.getItem("wishlist") || "{}");
+                                  const email = user.email;
+                                  all[email] = updated;
+                                  localStorage.setItem("wishlist", JSON.stringify(all));
+                                  window.dispatchEvent(new Event("wishlist-updated"));
+                                }}
+                                title="Hapus dari wishlist"
+                              >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                              </button>
+                            </div>
+                            
+                            {/* Progress Info */}
+                            <div class="mb-3">
+                              <div class="flex items-center justify-between text-sm mb-1">
+                                <span class="text-gray-600">
+                                  Ditabung: {formatRupiah(item.ditabung)}
+                                </span>
+                                <span class={`font-bold ${isCompleted ? 'text-green-600' : 'text-gray-700'}`}>
+                                  {persen}%
+                                </span>
+                              </div>
+                              
+                              {/* Progress Bar */}
+                              <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                <div
+                                  class={`h-full rounded-full transition-all duration-500 ${
+                                    isCompleted 
+                                      ? 'bg-gradient-to-r from-green-400 to-green-600' 
+                                      : 'bg-gradient-to-r from-blue-400 to-purple-500'
+                                  }`}
+                                  style={{ width: `${Math.min(parseInt(persen), 100)}%` }}
+                                />
                               </div>
                             </div>
-                            <div class="h-2 w-full bg-gray-200 rounded">
-                              <div
-                                class="h-2 bg-blue-400 rounded"
-                                style={{ width: `${persen}%` }}
-                              />
+                            
+                            {/* Status Badge */}
+                            <div class="flex items-center justify-between">
+                              <span class={`px-3 py-1 rounded-full text-xs font-medium ${
+                                isCompleted 
+                                  ? 'bg-green-100 text-green-700' 
+                                  : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                {isCompleted ? '✅ Target Tercapai!' : '⏳ Belum Tercapai'}
+                              </span>
+                              
+                              {!isCompleted && (
+                                <span class="text-xs text-gray-500">
+                                  Kurang: {formatRupiah(item.harga - item.ditabung)}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
