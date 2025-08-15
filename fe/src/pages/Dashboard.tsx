@@ -294,11 +294,14 @@ export default function Dashboard() {
                       <div class="bg-white shadow-md rounded-xl p-4">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                           <Show when={item.gambar}>
-                            <img
-                              src={item.gambar}
-                              alt={item.nama}
-                              class="w-full sm:w-16 sm:h-16 h-32 object-cover rounded-md flex-shrink-0"
-                            />
+                            <div class="w-full sm:w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                              <img
+                                src={item.gambar}
+                                alt={item.nama}
+                                class="w-full h-full object-contain"
+                                style={{ "background-color": "#f9fafb" }}
+                              />
+                            </div>
                           </Show>
                           <div class="flex-1 min-w-0">
                             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
