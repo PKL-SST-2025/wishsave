@@ -182,9 +182,6 @@ export default function LandingPage() {
               >
                 Start Your Journey 🚀
               </Button>
-              <button class="text-gray-600 hover:text-gray-800 font-medium flex items-center gap-2 px-4 py-4">
-                <span>▶️</span> Watch Demo
-              </button>
             </div>
 
             <p class="text-gray-400 text-sm mt-4">
